@@ -3,7 +3,7 @@ use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 pub struct SuggestArgs {
-    pub count: u32,
+    pub count: usize,
 
     #[structopt(name = "Shell History Path", short = "p")]
     pub history_file: Option<path::PathBuf>,

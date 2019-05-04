@@ -1,4 +1,5 @@
 use dirs;
+use regex::Regex;
 use std::{
     fs::File,
     io::{self, BufRead, BufReader},
@@ -15,11 +16,11 @@ pub fn read_history(path: Option<std::path::PathBuf>) -> io::Result<Vec<String>>
     }?;
 
     let f = BufReader::new(f);
-    let mut commands: Vec<String> = vec![];
-    for line in f.lines() {
-        if let Some(cmd) = line?.split(';').nth(1) {
-            commands.push(cmd.to_string());
-        }
-    }
+    let re = Regex::new(r"^: \d+:\d;").unwrap();
+    let commands: Vec<String> = f
+        .lines()
+        .filter_map(Result::ok)
+        .map(|l| re.replace(&l, "").to_string())
+        .collect();
     Ok(commands)
 }

@@ -6,8 +6,8 @@ pub struct CountingTrie<K>
 where
     K: Hash + Eq,
 {
-    count: u32,
-    children: HashMap<K, CountingTrie<K>>,
+    pub count: u32,
+    pub children: HashMap<K, CountingTrie<K>>,
 }
 
 impl<K> CountingTrie<K>
@@ -94,5 +94,5 @@ fn trie_construction() {
     assert_eq!(trie.get_count(&vec!["ls"]), 4);
 
     // All values
-    assert_eq!(trie.get_count(vec![]), 5);
+    assert_eq!(trie.get_count(&vec![]), 5);
 }

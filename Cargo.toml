@@ -7,3 +7,5 @@ edition = "2018"
 [dependencies]
 structopt = "*"
 dirs = "*"
+min-max-heap = "^1.2.2"
+regex = "*"
