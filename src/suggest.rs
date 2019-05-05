@@ -19,11 +19,17 @@ pub fn suggest(args: SuggestArgs) -> io::Result<()> {
         }
     }
 
-    let mut table = table!(["Command", "Uses", "Average Time of Use", "Time STD"]);
+    let mut table = table!(["Command", "Uses", "Average Time of Use", "Time \u{03C3}"]);
     for item in trie.get_top_values(args.count) {
         let cmd: Vec<String> = item.key.into_iter().map(|s| s.to_string()).collect();
+        let cmd: String = cmd.join(" ");
         let rank: &CommandRank = item.value;
-        table.add_row(row![cmd.join(" "), rank.count, rank.times.mean(), rank.times.std().num_days()]);
+        match rank.times {
+            Some(times) => {
+                table.add_row(row![cmd, rank.count, times.mean(), format!("{} hours", times.std().num_hours())])
+            }
+            None => table.add_row(row![cmd, rank.count, "N/A", "N/A"]),
+        };
     }
     table.printstd();
     Ok(())
@@ -32,10 +38,10 @@ pub fn suggest(args: SuggestArgs) -> io::Result<()> {
 #[derive(Debug, Default, PartialEq, Eq, Ord, PartialOrd)]
 struct CommandRank {
     count: u32,
-    times: CallTimes,
+    times: Option<CallTimes>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 struct CallTimes {
     count: u32,
     mean: f64,
@@ -46,30 +52,24 @@ impl CommandRank {
     fn update(&self, time: Option<u32>) -> Self {
         CommandRank {
             count: self.count + 1,
-            times: self.times.update(time),
+            times: match time {
+                Some(time) => Some(self.times.unwrap_or_default().update(time)),
+                None => self.times
+            }
         }
     }
 }
 
 impl CallTimes {
-    fn update(&self, time: Option<u32>) -> Self {
-        match time {
-            Some(time) => {
-                let count = self.count + 1;
-                let delta = time as f64 - self.mean;
-                let mean = self.mean + delta / count as f64;
-                let delta2 = time as f64 - mean;
-                CallTimes {
-                    count: count,
-                    mean: mean,
-                    m2: delta * delta2,
-                }
-            }
-            None => CallTimes {
-                count: self.count,
-                mean: self.mean,
-                m2: self.m2,
-            },
+    fn update(&self, time: u32) -> Self {
+        let count = self.count + 1;
+        let delta = time as f64 - self.mean;
+        let mean = self.mean + delta / count as f64;
+        let delta2 = time as f64 - mean;
+        CallTimes {
+            count: count,
+            mean: mean,
+            m2: delta * delta2,
         }
     }
 

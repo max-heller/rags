@@ -6,7 +6,8 @@ mod histfile;
 mod options;
 mod suggest;
 mod trie;
-#[macro_use] extern crate prettytable;
+#[macro_use]
+extern crate prettytable;
 
 fn main() -> io::Result<()> {
     match Cli::from_args() {
