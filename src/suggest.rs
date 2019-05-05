@@ -4,7 +4,6 @@ use crate::trie::Trie;
 use chrono::{Duration, NaiveDateTime};
 use core::cmp::Ordering;
 use histfile::Command;
-use std::fmt::{self, Display};
 use std::io;
 use std::time::Duration as StdDuration;
 
@@ -20,11 +19,13 @@ pub fn suggest(args: SuggestArgs) -> io::Result<()> {
         }
     }
 
+    let mut table = table!(["Command", "Uses", "Average Time of Use", "Time STD"]);
     for item in trie.get_top_values(args.count) {
         let cmd: Vec<String> = item.key.into_iter().map(|s| s.to_string()).collect();
-        println!("{}:", cmd.join(" "));
-        println!("{}", item.value);
+        let rank: &CommandRank = item.value;
+        table.add_row(row![cmd.join(" "), rank.count, rank.times.mean(), rank.times.std().num_days()]);
     }
+    table.printstd();
     Ok(())
 }
 
@@ -47,12 +48,6 @@ impl CommandRank {
             count: self.count + 1,
             times: self.times.update(time),
         }
-    }
-}
-
-impl Display for CommandRank {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Uses: {}, Time: {}", self.count, self.times)
     }
 }
 
@@ -88,17 +83,6 @@ impl CallTimes {
 
     fn std(&self) -> Duration {
         Duration::from_std(StdDuration::from_secs(self.variance().sqrt() as u64)).unwrap()
-    }
-}
-
-impl Display for CallTimes {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Mean: {}, Standard Deviation: {} Days",
-            self.mean(),
-            self.std().num_days()
-        )
     }
 }
 
