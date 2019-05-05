@@ -1,10 +1,8 @@
-use chrono::NaiveDateTime;
 use dirs;
 use regex::Regex;
 use std::{
     fs::File,
     io::{self, BufRead, BufReader},
-    str::FromStr,
 };
 
 const HIST_PATTERN: &str = r"^(: (?P<time>\d{10}):\d+;)?(?P<cmd>.*)";
@@ -12,7 +10,7 @@ const HIST_PATTERN: &str = r"^(: (?P<time>\d{10}):\d+;)?(?P<cmd>.*)";
 #[derive(Debug, PartialEq)]
 pub struct Command {
     pub args: Vec<String>,
-    pub time: Option<NaiveDateTime>,
+    pub time: Option<u32>,
 }
 
 impl From<String> for Command {
@@ -66,9 +64,7 @@ where
                         .split_whitespace()
                         .map(str::to_string)
                         .collect(),
-                    time: caps.name("time").and_then(|time| {
-                        NaiveDateTime::from_timestamp_opt(time.as_str().parse().unwrap(), 0)
-                    }),
+                    time: caps.name("time").map(|time| time.as_str().parse().unwrap()),
                 })
             })
         })
@@ -85,7 +81,7 @@ fn parse_dated_format() {
     let expected = vec![
         Command {
             args: vec!["cargo".to_string(), "fmt".to_string()],
-            time: NaiveDateTime::from_timestamp_opt(1556993411, 0),
+            time: Some(1556993411 as u32),
         },
         Command {
             args: vec![
@@ -93,7 +89,7 @@ fn parse_dated_format() {
                 "build".to_string(),
                 "--release".to_string(),
             ],
-            time: NaiveDateTime::from_timestamp_opt(1556991281, 0),
+            time: Some(1556991281 as u32),
         },
     ];
     assert_eq!(parse_commands(input), expected);
