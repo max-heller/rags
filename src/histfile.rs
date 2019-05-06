@@ -1,3 +1,4 @@
+use crate::command::Command;
 use dirs;
 use regex::Regex;
 use std::{
@@ -6,35 +7,6 @@ use std::{
 };
 
 const HIST_PATTERN: &str = r"^(: (?P<time>\d{10}):\d+;)?(?P<cmd>.*)";
-
-#[derive(Debug, PartialEq)]
-pub struct Command {
-    pub args: Vec<String>,
-    pub time: Option<u32>,
-}
-
-impl From<String> for Command {
-    fn from(string: String) -> Self {
-        Command {
-            args: string.split_whitespace().map(str::to_string).collect(),
-            time: None,
-        }
-    }
-}
-
-impl Into<String> for Command {
-    fn into(self) -> String {
-        self.args.join(" ")
-    }
-}
-
-impl IntoIterator for Command {
-    type Item = String;
-    type IntoIter = std::vec::IntoIter<String>;
-    fn into_iter(self) -> Self::IntoIter {
-        self.args.into_iter()
-    }
-}
 
 pub fn read_history(path: Option<std::path::PathBuf>) -> io::Result<Vec<Command>> {
     let f = match path {
