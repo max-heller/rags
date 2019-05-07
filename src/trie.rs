@@ -3,8 +3,8 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::hash::Hash;
 
-pub trait TrieKey: Hash + Eq {}
-impl<K: Hash + Eq> TrieKey for K {}
+pub trait TrieKey: Hash + Eq + Clone {}
+impl<K: Hash + Eq + Clone> TrieKey for K {}
 pub trait TrieValue: Default {}
 impl<V: Default> TrieValue for V {}
 
@@ -117,26 +117,26 @@ where
 }
 
 #[derive(Debug)]
-pub struct KeyValue<'a, K, V>
+pub struct KeyValue<K, V>
 where
     K: TrieKey,
-    V: TrieValue + PartialEq + Eq + PartialOrd + Ord,
+    V: TrieValue,
 {
-    pub key: Vec<&'a K>,
-    pub value: &'a V,
+    pub key: Vec<K>,
+    pub value: V,
 }
 
-impl<'a, K, V> Ord for KeyValue<'a, K, V>
+impl<K, V> Ord for KeyValue<K, V>
 where
     K: TrieKey,
     V: TrieValue + PartialEq + Eq + PartialOrd + Ord,
 {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.value.cmp(other.value)
+        self.value.cmp(&other.value)
     }
 }
 
-impl<'a, K, V> PartialOrd for KeyValue<'a, K, V>
+impl<K, V> PartialOrd for KeyValue<K, V>
 where
     K: TrieKey,
     V: TrieValue + PartialEq + Eq + PartialOrd + Ord,
@@ -146,17 +146,17 @@ where
     }
 }
 
-impl<'a, K, V> PartialEq for KeyValue<'a, K, V>
+impl<K, V> PartialEq for KeyValue<K, V>
 where
     K: TrieKey,
     V: TrieValue + PartialEq + Eq + PartialOrd + Ord,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.value.eq(other.value)
+        self.value.eq(&other.value)
     }
 }
 
-impl<'a, K, V> Eq for KeyValue<'a, K, V>
+impl<K, V> Eq for KeyValue<K, V>
 where
     K: TrieKey,
     V: TrieValue + PartialEq + Eq + PartialOrd + Ord,
@@ -168,24 +168,24 @@ where
     K: TrieKey,
     V: TrieValue + PartialEq + Eq + PartialOrd + Ord,
 {
-    pub fn get_top_values<'a>(&'a self, n: usize) -> Vec<KeyValue<'a, K, V>> {
+    pub fn drain_top_items(mut self, n: usize) -> Vec<KeyValue<K, V>> {
         let mut heap = SizedHeap::new(n);
-        for (fragment, node) in self.children.iter() {
-            node.add_to_heap(&vec![fragment], &mut heap);
+        for (fragment, node) in self.children.drain() {
+            node.add_to_heap(vec![fragment], &mut heap);
         }
         heap.heap.into_vec_desc()
     }
 
-    pub fn add_to_heap<'a>(&'a self, key: &Vec<&'a K>, heap: &mut SizedHeap<KeyValue<'a, K, V>>) {
-        let pair = KeyValue {
-            key: key.to_vec(),
-            value: &self.value,
+    fn add_to_heap(mut self, key: Vec<K>, heap: &mut SizedHeap<KeyValue<K, V>>) {
+        let item = KeyValue {
+            key: key.to_owned(),
+            value: self.value,
         };
-        if heap.insert(pair) {
-            for (fragment, node) in self.children.iter() {
-                let mut key = key.clone();
+        if heap.insert(item) {
+            for (fragment, node) in self.children.drain() {
+                let mut key = key.to_owned();
                 key.push(fragment);
-                node.add_to_heap(&key, heap);
+                node.add_to_heap(key, heap);
             }
         }
     }

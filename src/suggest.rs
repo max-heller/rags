@@ -1,43 +1,44 @@
-use crate::command::{Command, CommandRank};
-use crate::histfile;
+use crate::command::{Command, Uses};
+use crate::feature::FEATURES;
+use crate::histfile::{self, Parsed};
 use crate::options::SuggestArgs;
-use crate::trie::{KeyValue, Trie};
-use prettytable::{Row, Table};
-use std::io;
+use crate::rank::{self, RankedCommand};
+use crate::trie::Trie;
+use prettytable::Table;
+use std::cmp::{self, Ordering};
+use std::error::Error;
 
-pub fn suggest(args: SuggestArgs) -> io::Result<()> {
-    let commands = histfile::read_history(args.history_file)?;
+pub fn suggest(args: SuggestArgs) -> Result<(), Box<Error>> {
+    let parsed_commands = histfile::read_history(args.history_file)?;
+    let num_parsed = parsed_commands.len();
 
-    let mut trie: Trie<String, CommandRank> = Trie::new();
-    for cmd in commands {
-        let Command { args, time } = cmd;
-        trie.update_path(args, |rank| rank.update(time));
+    let mut trie: Trie<String, Uses> = Trie::new();
+    for parsed in parsed_commands {
+        let Parsed { args, time } = parsed;
+        trie.update_path(args, |uses| uses.update(time));
     }
 
-    let results = trie.get_top_values(args.count);
-    build_table(results).printstd();
+    let to_filter = cmp::max(args.count * 2, num_parsed / 10);
+    let filtered: Vec<Command> = trie
+        .drain_top_items(to_filter)
+        .into_iter()
+        .map(Command::from)
+        .collect();
+    let mut ranked = rank::rank(filtered, &FEATURES);
+    ranked.sort_unstable_by(|a, b| b.rank.partial_cmp(&a.rank).unwrap_or(Ordering::Equal));
+
+    build_table(&ranked[..args.count]).printstd();
     Ok(())
 }
 
-fn build_table<'a>(items: Vec<KeyValue<'a, String, CommandRank>>) -> Table {
-    let mut table = table!(["Command", "Uses", "Average Time of Use", "Time \u{03C3}"]);
-    for item in items {
-        let cmd: Vec<String> = item.key.into_iter().map(|s| s.to_string()).collect();
-        let cmd: String = cmd.join(" ");
-        let rank: &CommandRank = item.value;
-        table.add_row(format_row(cmd, rank));
+fn build_table(results: &[RankedCommand]) -> Table {
+    let mut table = table!(["Command", "Uses", "Rank"]);
+    for result in results {
+        table.add_row(row![
+            result.command.args.join(" "),
+            result.command.uses.count,
+            result.rank
+        ]);
     }
     table
-}
-
-fn format_row(command: String, rank: &CommandRank) -> Row {
-    match rank.times {
-        Some(times) => row![
-            command,
-            rank.count,
-            times.mean(),
-            format!("{} hours", times.std().num_hours())
-        ],
-        None => row![command, rank.count, "N/A", "N/A"],
-    }
 }

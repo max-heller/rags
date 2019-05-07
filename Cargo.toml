@@ -5,9 +5,9 @@ authors = ["mxheller <heller.max1@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-structopt = "*"
-dirs = "*"
+chrono = "^0.4.6"
+dirs = "^1.0.5"
 min-max-heap = "^1.2.2"
-regex = "*"
-chrono = "*"
-prettytable-rs = "*"
+prettytable-rs = "^0.8.0"
+regex = "^1.1.6"
+structopt = "^0.2.15"
