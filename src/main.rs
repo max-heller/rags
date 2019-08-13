@@ -3,20 +3,17 @@ extern crate prettytable;
 
 use structopt::StructOpt;
 
-use options::Cli;
+use cli::Cli;
 
-mod command;
-mod feature;
-mod histfile;
+mod history;
 mod capped_heap;
-mod options;
-mod rank;
+mod cli;
 mod suggest;
 mod trie;
 
 fn main() {
     let result = match Cli::from_args() {
-        Cli::Suggest(args) => suggest::suggest(args).map(|table| table.printstd()),
+        Cli::Suggest(args) => cli::suggest(args).map(|table| table.printstd()),
     };
     if let Err(e) = result {
         eprintln!("Encountered error: {}", e);

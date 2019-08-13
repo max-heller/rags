@@ -1,5 +1,8 @@
 use min_max_heap::MinMaxHeap;
 
+#[cfg(test)]
+mod tests;
+
 /// A generic heap capped at a specific size
 pub struct CappedHeap<T>
     where
