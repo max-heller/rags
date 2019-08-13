@@ -65,7 +65,7 @@ impl<K: TrieKey, V: TrieValue> Trie<K, V> {
 }
 
 /// A key-value pair for a `Trie`
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct KeyValue<K, V>
 where
     K: TrieKey,
@@ -93,23 +93,6 @@ where
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
-}
-
-impl<K, V> PartialEq for KeyValue<K, V>
-where
-    K: TrieKey,
-    V: TrieValue + PartialEq + Eq + PartialOrd + Ord,
-{
-    fn eq(&self, other: &Self) -> bool {
-        self.key.eq(&other.key) && self.value.eq(&other.value)
-    }
-}
-
-impl<K, V> Eq for KeyValue<K, V>
-where
-    K: TrieKey,
-    V: TrieValue + PartialEq + Eq + PartialOrd + Ord,
-{
 }
 
 impl<K, V> Trie<K, V>
