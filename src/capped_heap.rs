@@ -25,7 +25,7 @@ impl<T> CappedHeap<T>
             // Heap has not yet reached cap--safe to insert
             self.heap.push(item);
             true
-        } else if item > *self.heap.peek_min().unwrap() {
+        } else if self.cap > 0 && item > *self.heap.peek_min().unwrap() {
             // Heap is at cap but item has higher priority than current min--replace min
             self.heap.replace_min(item);
             true
