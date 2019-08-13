@@ -33,11 +33,12 @@ pub fn suggest(args: SuggestArgs) -> Result<Table, Error> {
     let mut ranked = rank::rank(filtered, &FEATURES);
     ranked.sort_unstable_by(|a, b| b.rank.partial_cmp(&a.rank).unwrap_or(Ordering::Equal));
 
-    Ok(build_table(&ranked[..args.count]))
+    Ok(build_table(ranked.into_iter().take(args.count)))
 }
 
 /// Converts a list of ranked commands into a table
-fn build_table(results: &[RankedCommand]) -> Table {
+fn build_table<I>(results: I) -> Table
+    where I: IntoIterator<Item=RankedCommand> {
     let mut table = table!(["Command", "Uses", "Rank"]);
     for result in results {
         table.add_row(row![
