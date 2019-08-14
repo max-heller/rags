@@ -27,7 +27,7 @@ impl Executions {
     }
 
     /// Produces the `NaiveDateTime` at which the command was last executed
-    fn last_executed(&self) -> Option<DateTime<Local>> {
+    pub fn last_executed(&self) -> Option<DateTime<Local>> {
         self.last_executed
             .map(|time| Local.timestamp(time as i64, 0))
     }

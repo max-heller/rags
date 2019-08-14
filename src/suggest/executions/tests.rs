@@ -1,3 +1,5 @@
+use chrono::{Local, TimeZone};
+
 use super::Executions;
 
 #[test]
@@ -65,5 +67,6 @@ fn representation() {
         count: 1,
         last_executed: Some(1565737322),
     };
-    assert_eq!(executions.last_executed_str().unwrap(), "2019-08-13 07:02PM");
+    assert_eq!(executions.last_executed().unwrap(), Local.timestamp(1565737322, 0));
+    assert!(executions.last_executed_str().unwrap().starts_with("2019-08"));
 }
