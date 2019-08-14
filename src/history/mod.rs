@@ -6,7 +6,7 @@ use std::{
 
 use regex::Regex;
 
-pub use executed_command::{ExecutedCommand, HIST_PATTERN};
+pub use executed_command::ExecutedCommand;
 
 mod executed_command;
 #[cfg(test)]
@@ -21,7 +21,7 @@ pub struct History {
 impl<T: AsRef<str>> FromIterator<T> for History {
     /// Parses commands from an iterator, discarding any lines that can't be parsed
     fn from_iter<I: IntoIterator<Item=T>>(lines: I) -> Self {
-        let re = Regex::new(HIST_PATTERN).unwrap();
+        let re = Regex::new(ExecutedCommand::PATTERN).unwrap();
         let commands = lines
             .into_iter()
             .filter_map(|line| ExecutedCommand::try_parse(line.as_ref(), &re))

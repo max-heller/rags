@@ -1,10 +1,10 @@
 use regex::Regex;
 
-use super::{ExecutedCommand, HIST_PATTERN};
+use super::ExecutedCommand;
 
 #[test]
 fn parse_dated_format() {
-    let re = Regex::new(HIST_PATTERN).unwrap();
+    let re = Regex::new(ExecutedCommand::PATTERN).unwrap();
     assert_eq!(
         ExecutedCommand::try_parse(": 1556993411:0;cargo fmt", &re),
         Some(ExecutedCommand {
@@ -27,7 +27,7 @@ fn parse_dated_format() {
 
 #[test]
 fn parse_undated_format() {
-    let re = Regex::new(HIST_PATTERN).unwrap();
+    let re = Regex::new(ExecutedCommand::PATTERN).unwrap();
     assert_eq!(
         ExecutedCommand::try_parse("cargo fmt", &re),
         Some(ExecutedCommand {
