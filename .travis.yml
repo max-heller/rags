@@ -1,4 +1,10 @@
 language: rust
+sudo: required
+dist: trusty
+addons:
+  apt:
+    packages:
+      - libssl-dev
 rust:
   - stable
   - beta
@@ -8,6 +14,15 @@ matrix:
     - rust: nightly
   fast_finish: true
 cache: cargo
+before_cache: |
+  if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
+    cargo install cargo-tarpaulin -f
+  fi
 script:
+  - cargo clean
   - cargo build --verbose --all
   - cargo test --verbose --all
+after_success: |
+  if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
+    cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID
+  fi
