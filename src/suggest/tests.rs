@@ -62,16 +62,10 @@ fn suggest_all() {
 #[test]
 fn table_building() {
     let table = build_table(sample_suggestions());
-    assert_eq!(
-        table.to_string(),
-        "\
-+------+-----------+-----------+\r
-| Uses | Last Used | Command   |\r
-+------+-----------+-----------+\r
-| 3    | Unknown   | cargo     |\r
-+------+-----------+-----------+\r
-| 2    | Unknown   | cargo run |\r
-+------+-----------+-----------+\r
-"
+    let expected = table!(
+        ["Uses", "Last Used", "Command"],
+        [3, "Unknown", "cargo"],
+        [2, "Unknown", "cargo run"]
     );
+    assert_eq!(table, expected);
 }
