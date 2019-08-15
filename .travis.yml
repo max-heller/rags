@@ -19,10 +19,16 @@ before_cache: |
     cargo install cargo-tarpaulin -f
   fi
 script:
-  - cargo clean
-  - cargo build --verbose --all
-  - cargo test --verbose --all
+  - cargo build --release --verbose --all
+  - cargo test --release --verbose --all
 after_success: |
   if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
     cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID
   fi
+deploy:
+  provider: cargo
+  on:
+    branch: master
+    condition: $TRAVIS_RUST_VERSION = stable
+  token:
+    secure: ApSRXtEvZwjjA5trHIj8Ju+jo0OadUsR2pAdJrYiv/crIwlWTyNhvB9ySZuol3rw7wTKN3iPzlwZLeukJ+zmakTBtK8vwsF3cgC4Q7yAHFmhPVFySDEfHkkWJRolb5GlL4tHI06tSGx+qUlD91zur643HN+0IQvIjbHV8OAzkxTSWDSqSXy6QrxdO4f5UPEZX2L5FSV6DykQF2k53HoXsVgW5PUVgUeoCiwXdvwEpTSlHsPSZtvOG/snRk2Et/PuZh5+DHXhjNQ7TRNBRCM2+tTq4iczZ33LglRcVA9tOFrJGsyOB0OQAIdNhUViZSCddZsRXn30gvHZWcDWgwFvxY7dAG6cOBU8Iz7sne2sf3d4amTHlwHBvE5ll3PWoWGcfp0nHpxQn4SD0uAtG33yYK5nHLJ4Q6vNgUSEr6n7PkOrvSv69NNT+NsqoHnWNgv+vAXswI5OCULp+7kg0nMK47hv0yz8fFUJdh+T2rzlPsR1+Y1OILhWNU0AtI59CNXbwVJgM5uojEUtRTcr7UvktHGQHJgDyq0jlS+Y5psOpiFwMLl7s7XNuLZM+W5eVUq+wth4Vai/qsAtpSueownfBMgynyDBCuEo16xX8eT1o43RTs+CcYX3rsMv7SbifuASmCjZM7DkOjGUkBoAZNSIV2fUcnzgV8JaTOdloPZfzZI=

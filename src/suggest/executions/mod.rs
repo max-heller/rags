@@ -3,10 +3,11 @@ use std::cmp::{max, Ordering};
 use chrono::{DateTime, offset::Local, TimeZone};
 
 #[cfg(test)]
+#[cfg_attr(tarpaulin, skip)]
 mod tests;
 
 /// Represents the executions of a command
-#[derive(Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Executions {
     /// How many times the command has been executed
     pub count: u32,

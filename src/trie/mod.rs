@@ -1,12 +1,8 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-pub use key_value::KeyValue;
-
-use crate::capped_heap::CappedHeap;
-
-mod key_value;
 #[cfg(test)]
+#[cfg_attr(tarpaulin, skip)]
 mod tests;
 
 /// Trait for types that can be used as keys in a `Trie`
@@ -20,8 +16,8 @@ impl<V: Default> TrieValue for V {}
 /// A generic trie with sequence-based keys
 #[derive(Debug)]
 pub struct Trie<K: TrieKey, V: TrieValue> {
-    value: V,
-    children: HashMap<K, Trie<K, V>>,
+    pub(crate) value: V,
+    pub(crate) children: HashMap<K, Trie<K, V>>,
 }
 
 impl<K: TrieKey, V: TrieValue> Trie<K, V> {
@@ -52,40 +48,5 @@ impl<K: TrieKey, V: TrieValue> Trie<K, V> {
         });
         // Update final node's value
         target.value = f(&target.value);
-    }
-}
-
-impl<K, V> Trie<K, V>
-where
-    K: TrieKey,
-    V: TrieValue + PartialOrd + Ord,
-{
-    /// Produces a list of at most `n` key-value pairs sorted in descending order by value
-    pub fn drain_top_items(mut self, n: usize) -> Vec<KeyValue<K, V>> {
-        let mut heap = CappedHeap::new(n);
-        for (fragment, node) in self.children.drain() {
-            node.add_to_heap(vec![fragment], &mut heap);
-        }
-        heap.heap.into_vec_desc()
-    }
-
-    /// Adds the current node and its children to a `CappedHeap`
-    fn add_to_heap(mut self, key: Vec<K>, heap: &mut CappedHeap<KeyValue<K, V>>) {
-        // Create key-value pair for current node
-        let item = KeyValue {
-            key: key.to_owned(),
-            value: self.value,
-        };
-        // Insert pair and all of its children if the former fit in the heap
-        if heap.insert(item) {
-            for (fragment, node) in self.children.drain() {
-                // Build key for child
-                let mut key = key.to_owned();
-                key.push(fragment);
-
-                // Add child to the heap
-                node.add_to_heap(key, heap);
-            }
-        }
     }
 }

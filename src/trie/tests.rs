@@ -1,6 +1,3 @@
-use std::cmp::min;
-
-use crate::trie::key_value::KeyValue;
 use crate::trie::Trie;
 
 impl Trie<&'static str, u32> {
@@ -27,52 +24,6 @@ fn init_trie() -> Trie<&'static str, u32> {
     trie
 }
 
-/// Portion of sorted output that has deterministic order
-fn sorted() -> Vec<KeyValue<&'static str, u32>> {
-    vec![
-        KeyValue {
-            key: vec!["ls"],
-            value: 4,
-        },
-        KeyValue {
-            key: vec!["ls", "-l"],
-            value: 3,
-        },
-        KeyValue {
-            key: vec!["ls", "-l", "/home"],
-            value: 2,
-        }
-    ]
-}
-
-/// Portion of sorted output that might be in any order
-fn rest() -> Vec<KeyValue<&'static str, u32>> {
-    vec![
-        KeyValue {
-            key: vec!["cd"],
-            value: 1,
-        },
-        KeyValue {
-            key: vec!["cd", "/dev"],
-            value: 1,
-        },
-        KeyValue {
-            key: vec!["ls", "-l", "/dev"],
-            value: 1,
-        }
-    ]
-}
-
-fn assert_sorted(items: Vec<KeyValue<&'static str, u32>>) {
-    let len_to_compare = min(items.len(), sorted().len());
-    assert_eq!(items[..len_to_compare], sorted()[..len_to_compare]);
-    if items.len() >= 6 {
-        for extra in rest() {
-            assert!(items.contains(&extra))
-        }
-    }
-}
-
 #[test]
 fn trie_construction() {
     let trie = init_trie();
@@ -85,34 +36,4 @@ fn trie_construction() {
     // Intermediate values
     assert_eq!(trie.get(vec!["ls", "-l"]), Some(&3));
     assert_eq!(trie.get(vec!["ls"]), Some(&4));
-}
-
-#[test]
-fn trie_drain_none() {
-    let trie = init_trie();
-    assert_eq!(trie.drain_top_items(0), vec![]);
-}
-
-#[test]
-fn trie_drain_one() {
-    let trie = init_trie();
-    assert_eq!(trie.drain_top_items(1)[..], sorted()[..1]);
-}
-
-/// Drains the exact number of items in the trie
-#[test]
-fn trie_drain_all() {
-    let trie = init_trie();
-    let drained = trie.drain_top_items(6);
-    assert_eq!(drained.len(), 6);
-    assert_sorted(drained);
-}
-
-/// Attempts to drain more pairs than exist
-#[test]
-fn trie_drain_more() {
-    let trie = init_trie();
-    let drained = trie.drain_top_items(50);
-    assert_eq!(drained.len(), 6);
-    assert_sorted(drained);
 }

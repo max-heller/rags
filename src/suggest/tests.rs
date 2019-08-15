@@ -10,20 +10,20 @@ fn sample_hist() -> History {
 
 fn sample_suggestions() -> Vec<Suggestion> {
     vec![
-        Suggestion {
-            executions: Executions {
-                count: 3,
+        Suggestion::new(
+            vec!["cargo", "run", "--release"],
+            Executions {
+                count: 1,
                 last_executed: None,
             },
-            command: "cargo".to_string(),
-        },
-        Suggestion {
-            executions: Executions {
+        ),
+        Suggestion::new(
+            vec!["cargo", "run"],
+            Executions {
                 count: 2,
                 last_executed: None,
             },
-            command: "cargo run".to_string(),
-        },
+        ),
     ]
 }
 
@@ -35,14 +35,8 @@ fn suggest_none() {
 #[test]
 fn suggest_one() {
     let suggestions: Vec<Suggestion> = suggest(sample_hist(), 1).collect();
-    let expected = vec![Suggestion {
-        executions: Executions {
-            count: 3,
-            last_executed: None,
-        },
-        command: "cargo".to_string(),
-    }];
-    assert_eq!(suggestions, expected);
+    let expected = &sample_suggestions()[..1];
+    assert_eq!(&suggestions[..1], expected);
 }
 
 #[test]
@@ -64,7 +58,7 @@ fn table_building() {
     let table = build_table(sample_suggestions());
     let expected = table!(
         ["Uses", "Last Used", "Command"],
-        [3, "Unknown", "cargo"],
+        [1, "Unknown", "cargo run --release"],
         [2, "Unknown", "cargo run"]
     );
     assert_eq!(table, expected);

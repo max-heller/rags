@@ -11,9 +11,11 @@ use crate::suggest::build_table;
 /// Represents command line arguments for the `suggest` sub-command
 #[derive(Debug, StructOpt)]
 pub struct SuggestArgs {
-    #[structopt(name = "History file")]
+    /// Path to history file
+    #[structopt(name = "histfile")]
     pub history_file: PathBuf,
-    #[structopt(name = "Number of aliases to suggest")]
+    /// Number of aliases to suggest
+    #[structopt(name = "n", default_value = "5")]
     pub count: usize,
 }
 

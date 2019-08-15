@@ -1,6 +1,7 @@
 use regex::Regex;
 
 #[cfg(test)]
+#[cfg_attr(tarpaulin, skip)]
 mod tests;
 
 /// A parsed command from a line of a history file
@@ -20,11 +21,8 @@ impl ExecutedCommand {
     pub fn try_parse(line: &str, re: &Regex) -> Option<Self> {
         re.captures(line).and_then(|caps| {
             caps.name("cmd").and_then(|cmd| {
-                let args = cmd
-                    .as_str()
-                    .split_whitespace()
-                    .map(str::to_string)
-                    .collect();
+                let split = cmd.as_str().split_whitespace();
+                let args = split.map(str::to_string).collect();
                 let time = caps.name("time").map(|time| time.as_str().parse().unwrap());
                 Some(ExecutedCommand { args, time })
             })

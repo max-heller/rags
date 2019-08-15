@@ -1,6 +1,7 @@
 use min_max_heap::MinMaxHeap;
 
 #[cfg(test)]
+#[cfg_attr(tarpaulin, skip)]
 mod tests;
 
 /// A generic heap capped at a specific size
@@ -22,19 +23,14 @@ impl<T> CappedHeap<T>
         CappedHeap { cap, heap }
     }
 
-    /// Inserts an item into the heap if it fits, returning `true` if it was inserted
-    pub fn insert(&mut self, item: T) -> bool {
+    /// Inserts an item into the heap if there is space for it or it ranks higher than current min
+    pub fn insert(&mut self, item: T) {
         if self.heap.len() < self.cap {
             // Heap has not yet reached cap--safe to insert
             self.heap.push(item);
-            true
         } else if self.cap > 0 && item > *self.heap.peek_min().unwrap() {
             // Heap is at cap but item has higher priority than current min--replace min
             self.heap.replace_min(item);
-            true
-        } else {
-            // Heap is at cap and item has lower priority than everything in the heap--do nothing
-            false
         }
     }
 }
